@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+
+import { SiteHeader } from "@/components/SiteHeader";
+
+import { fontCormorant, fontDmSans, fontGreatVibes } from "./fonts";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Henry Tran — Portfolio",
@@ -25,9 +18,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fontCormorant.variable} ${fontDmSans.variable} ${fontGreatVibes.variable} h-full antialiased`}
     >
-      <body className="relative min-h-full flex flex-col">
+      <body className="relative flex min-h-full flex-col font-[family-name:var(--font-dm-sans)]">
+        <SiteHeader />
         {children}
 
         {/* MASCOT placeholder — fixed bottom-right corner */}
@@ -46,7 +40,7 @@ export default function RootLayout({
             fontSize: "0.65rem",
             fontWeight: 700,
             letterSpacing: "0.1em",
-            zIndex: 9999,
+            zIndex: 50,
             pointerEvents: "none",
           }}
         >

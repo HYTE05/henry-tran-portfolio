@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ─────────────────────────────────────────────────────── */
+:root {
+  --bg-primary:      #08090d;
+  --bg-surface:      #12141a;
+  --accent-warm:     #e8a84c;
+  --accent-cool:     #4fa8d5;
+  --text-primary:    #f0ece4;
+  --text-secondary:  #8a8680;
+}
+
+/* ─── Tailwind v4 Theme Mapping ─────────────────────────────────────────── */
+@theme inline {
+  --color-bg-primary:     var(--bg-primary);
+  --color-bg-surface:     var(--bg-surface);
+  --color-accent-warm:    var(--accent-warm);
+  --color-accent-cool:    var(--accent-cool);
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ─── Base Styles ───────────────────────────────────────────────────────── */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}

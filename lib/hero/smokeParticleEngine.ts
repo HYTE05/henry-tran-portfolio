@@ -132,6 +132,8 @@ export class SmokeParticleEngine {
     c.style.height = "100%";
     c.style.display = "block";
     c.style.pointerEvents = "none";
+    /* Above section background, below copy / plane (z-10+) */
+    c.style.zIndex = "5";
   }
 
   private onResize() {

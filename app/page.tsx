@@ -1,4 +1,8 @@
 import { OpeningHero } from "@/components/hero/OpeningHero";
+import { AboutSection } from "@/components/sections/AboutSection";
+import { BuildSection } from "@/components/sections/BuildSection";
+import { ExploreSection } from "@/components/sections/ExploreSection";
+import { ProjectsPreviewSection } from "@/components/sections/ProjectsPreviewSection";
 
 export default function Home() {
   return (
@@ -9,6 +13,10 @@ export default function Home() {
         className="pointer-events-none h-px w-full shrink-0 scroll-mt-0"
         aria-hidden
       />
+      <AboutSection />
+      <ExploreSection />
+      <BuildSection />
+      <ProjectsPreviewSection />
       <div className="min-h-[40vh] shrink-0" aria-hidden />
     </main>
   );

@@ -1,6 +1,12 @@
 /**
  * Lightweight spatial "flyby" using Web Audio API — no external assets.
  * Panner follows plane X mapped roughly to stereo space.
+ *
+ * TODO (Phase 5 — before launch): Replace procedural noise with a real CC0 sample.
+ * - Source: https://freesound.org — search "aerobatic flyby", filter CC0.
+ * - Add `/public/audio/flyby.mp3` (+ optional `.ogg` fallback).
+ * - In `playPass()`, decode the file with `fetch` + `decodeAudioData` instead of
+ *   generating the buffer inline, and keep the existing panner/gain routing.
  */
 
 export class FlybyAudio {

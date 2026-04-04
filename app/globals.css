@@ -42,6 +42,71 @@
   }
 }
 
+/* Mouse scroll cue (hero) — shell bob + wheel stroke */
+@keyframes scroll-mouse-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+@keyframes scroll-wheel-stroke {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0.2;
+  }
+  35% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(10px);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(-6px);
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-mouse-shell {
+    animation: scroll-mouse-bob 1.9s ease-in-out infinite;
+  }
+
+  .scroll-mouse-wheel {
+    transform-box: fill-box;
+    animation: scroll-wheel-stroke 1.9s ease-in-out infinite;
+  }
+}
+
+@keyframes projects-preview-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.projects-preview-sheen {
+  background-size: 200% 200%;
+  animation: projects-preview-shift 14s ease-in-out infinite;
+}
+
+.projects-preview-grid {
+  opacity: 0.07;
+  background-image: linear-gradient(
+      var(--text-secondary) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, var(--text-secondary) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
 /* ─── Base Styles ───────────────────────────────────────────────────────── */
 html,
 body {

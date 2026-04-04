@@ -66,20 +66,50 @@ function PlaneSvg() {
 function ScrollIndicator({ visible }: { visible: boolean }) {
   return (
     <div
-      className="pointer-events-none absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1 transition-opacity duration-700"
+      className="pointer-events-none absolute bottom-10 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center transition-opacity duration-700"
       style={{ opacity: visible ? 1 : 0 }}
       aria-hidden={!visible}
     >
-      <svg width="22" height="36" viewBox="0 0 22 36" fill="none" aria-hidden>
-        <path
-          d="M11 4v20M4 22l7 7 7-7"
-          stroke="var(--accent-warm)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={visible ? "animate-hero-scroll-cue" : ""}
-        />
-      </svg>
+      <div className={visible ? "scroll-mouse-shell" : ""}>
+        <svg
+          width="34"
+          height="52"
+          viewBox="0 0 34 52"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+          className="overflow-visible"
+        >
+          <title>Scroll down</title>
+          <rect
+            x="5"
+            y="2"
+            width="24"
+            height="40"
+            rx="12"
+            stroke="var(--text-secondary)"
+            strokeWidth="1.25"
+            fill="none"
+            opacity={0.92}
+          />
+          <g
+            className={visible ? "scroll-mouse-wheel" : ""}
+            style={{
+              transformOrigin: "17px 15px",
+            }}
+          >
+            <line
+              x1="17"
+              y1="12"
+              x2="17"
+              y2="18"
+              stroke="var(--text-primary)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </g>
+        </svg>
+      </div>
     </div>
   );
 }
@@ -161,12 +191,6 @@ export function OpeningHero() {
     setStarted(true);
     await audioRef.current?.unlock();
 
-    if (reduceMotion) {
-      phaseRef.current = "done";
-      window.setTimeout(() => setShowScrollCue(true), 900);
-      return;
-    }
-
     const host = rootRef.current;
     if (!host || !planeRef.current) return;
 
@@ -247,6 +271,7 @@ export function OpeningHero() {
         engine.beginFormation(screenTargets);
       },
     });
+    if (reduceMotion) tl.timeScale(2.4);
 
     tl.call(() => playFlyby(0.55))
       .add(runPass(PASS_CURVES[0]!, 2.55))
@@ -264,6 +289,7 @@ export function OpeningHero() {
   return (
     <section
       ref={rootRef}
+      data-scroll-section="hero"
       className="relative min-h-[100dvh] w-full overflow-hidden bg-[var(--bg-primary)]"
       aria-label="Opening"
     >
@@ -285,17 +311,6 @@ export function OpeningHero() {
         >
           Click or tap anywhere to begin
         </button>
-      )}
-
-      {reduceMotion && started && (
-        <div className="pointer-events-none absolute inset-0 z-[15] flex flex-col items-center justify-center">
-          <p
-            className="font-[family-name:var(--font-cormorant)] text-4xl text-[var(--text-primary)] md:text-6xl"
-            aria-hidden
-          >
-            {FORMATION_TEXT}
-          </p>
-        </div>
       )}
 
       <div

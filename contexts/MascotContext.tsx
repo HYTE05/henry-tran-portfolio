@@ -5,15 +5,18 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 type MascotContextValue = {
   exploreHovered: boolean;
   setExploreHovered: (v: boolean) => void;
+  celebrating: boolean;
+  setCelebrating: (v: boolean) => void;
 };
 
 const MascotContext = createContext<MascotContextValue | null>(null);
 
 export function MascotProvider({ children }: { children: ReactNode }) {
   const [exploreHovered, setExploreHovered] = useState(false);
+  const [celebrating, setCelebrating] = useState(false);
   const value = useMemo(
-    () => ({ exploreHovered, setExploreHovered }),
-    [exploreHovered],
+    () => ({ exploreHovered, setExploreHovered, celebrating, setCelebrating }),
+    [exploreHovered, celebrating],
   );
   return (
     <MascotContext.Provider value={value}>{children}</MascotContext.Provider>

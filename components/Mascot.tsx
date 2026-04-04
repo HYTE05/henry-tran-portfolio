@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { PixelPilot } from "./mascot/PixelPilot";
 import { useMascotContext } from "@/contexts/MascotContext";
 import { useScrollSection } from "@/hooks/useScrollSection";
 import {
@@ -15,7 +16,9 @@ export type { MascotAnim };
 function resolveAnim(
   section: ReturnType<typeof useScrollSection>,
   exploreHovered: boolean,
+  celebrating: boolean,
 ): MascotAnim {
+  if (celebrating) return "celebrate";
   if (section === "projects") return "excited";
   if (section === "build") return "typing";
   if (section === "explore") return exploreHovered ? "excited" : "point";
@@ -50,9 +53,20 @@ function useSpritesheetAvailable(src: string) {
  */
 export function Mascot() {
   const section = useScrollSection();
-  const { exploreHovered } = useMascotContext();
-  const anim = resolveAnim(section, exploreHovered);
+  const { exploreHovered, celebrating } = useMascotContext();
+  const anim = resolveAnim(section, exploreHovered, celebrating);
   const hasSheet = useSpritesheetAvailable(MASCOT_SPRITE_PATH);
+
+  // Hide on mobile (screens under 480px)
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 480);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  if (isMobile) return null;
 
   return (
     <div
@@ -64,27 +78,15 @@ export function Mascot() {
           ? {
               backgroundImage: `url(${MASCOT_SPRITE_PATH})`,
               backgroundRepeat: "no-repeat",
-              backgroundSize: "500% 100%",
+              backgroundSize: "600% 100%",
               backgroundPosition: mascotBackgroundPosition(anim),
               transition: "background-position 0.35s ease",
             }
-          : {
-              border: "2px dashed red",
-              color: "red",
-            }
+          : {}
       }
       aria-hidden
     >
-      {!hasSheet ? (
-        <>
-          <span className="text-[0.65rem] font-bold tracking-[0.1em]">
-            MASCOT
-          </span>
-          <span className="font-[family-name:var(--font-dm-sans)] text-[0.5rem] font-normal normal-case tracking-normal opacity-70">
-            {anim}
-          </span>
-        </>
-      ) : null}
+      {!hasSheet ? <PixelPilot anim={anim} /> : null}
     </div>
   );
 }

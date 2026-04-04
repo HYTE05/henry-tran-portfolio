@@ -8,7 +8,8 @@ export type ScrollSectionId =
   | "about"
   | "explore"
   | "build"
-  | "projects";
+  | "projects"
+  | "contact";
 
 const ORDER: ScrollSectionId[] = [
   "hero",
@@ -16,6 +17,7 @@ const ORDER: ScrollSectionId[] = [
   "explore",
   "build",
   "projects",
+  "contact",
 ];
 
 /** Which major section occupies the middle of the viewport. */

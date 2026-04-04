@@ -3,4 +3,5 @@ export type MascotAnim =
   | "wave"
   | "point"
   | "excited"
-  | "typing";
+  | "typing"
+  | "celebrate";

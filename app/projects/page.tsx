@@ -1,9 +1,23 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 
 import { FEATURED_PROJECT, PROJECTS } from "@/lib/content/projects";
 
+const ExplodedView = dynamic(
+  () => import("@/components/projects/ExplodedView").then((m) => ({ default: m.ExplodedView })),
+  { ssr: false }
+);
+
 export default function ProjectsPage() {
   const others = PROJECTS.filter((p) => p.slug !== FEATURED_PROJECT.slug);
+  const [showExplodedView, setShowExplodedView] = useState(false);
+
+  if (showExplodedView) {
+    return <ExplodedView onClose={() => setShowExplodedView(false)} />;
+  }
 
   return (
     <main
@@ -53,12 +67,20 @@ export default function ProjectsPage() {
                 </li>
               ))}
             </ul>
-            <Link
-              href={FEATURED_PROJECT.href}
-              className="font-[family-name:var(--font-dm-sans)] mt-8 inline-flex border border-[var(--accent-cool)] px-6 py-3 text-sm tracking-wide text-[var(--accent-cool)] transition-colors duration-200 hover:bg-[var(--accent-cool)]/10"
-            >
-              Open project
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href={FEATURED_PROJECT.href}
+                className="font-[family-name:var(--font-dm-sans)] inline-flex border border-[var(--accent-cool)] px-6 py-3 text-sm tracking-wide text-[var(--accent-cool)] transition-colors duration-200 hover:bg-[var(--accent-cool)]/10"
+              >
+                View Live
+              </Link>
+              <button
+                onClick={() => setShowExplodedView(true)}
+                className="font-[family-name:var(--font-dm-sans)] inline-flex border border-[var(--accent-warm)] px-6 py-3 text-sm tracking-wide text-[var(--accent-warm)] transition-colors duration-200 hover:bg-[var(--accent-warm)]/10"
+              >
+                Explore Architecture
+              </button>
+            </div>
           </div>
         </article>
 

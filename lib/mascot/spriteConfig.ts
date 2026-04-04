@@ -10,9 +10,10 @@ export const MASCOT_ANIM_ORDER: MascotAnim[] = [
   "point",
   "excited",
   "typing",
+  "celebrate",
 ];
 
-/** background-position for a 500% × 100% background-size strip (five frames). */
+/** background-position for a 600% × 100% background-size strip (six frames). */
 export function mascotBackgroundPosition(anim: MascotAnim): string {
   const i = MASCOT_ANIM_ORDER.indexOf(anim);
   const n = MASCOT_ANIM_ORDER.length;

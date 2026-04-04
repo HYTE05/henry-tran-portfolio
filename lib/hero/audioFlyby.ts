@@ -1,12 +1,26 @@
 /**
- * Lightweight spatial "flyby" using Web Audio API — no external assets.
+ * Lightweight spatial "flyby" using Web Audio API.
  * Panner follows plane X mapped roughly to stereo space.
  *
- * TODO (Phase 5 — before launch): Replace procedural noise with a real CC0 sample.
- * - Source: https://freesound.org — search "aerobatic flyby", filter CC0.
- * - Add `/public/audio/flyby.mp3` (+ optional `.ogg` fallback).
- * - In `playPass()`, decode the file with `fetch` + `decodeAudioData` instead of
- *   generating the buffer inline, and keep the existing panner/gain routing.
+ * AUDIO SWAP INSTRUCTIONS (Phase 5):
+ * ===================================
+ * The synthesized noise below works as a placeholder, but for launch:
+ *
+ * 1. Find a CC0 aerobatic flyby sound:
+ *    - Go to https://freesound.org
+ *    - Search: "aerobatic flyby" or "jet flyby"
+ *    - Filter by License: "Creative Commons 0"
+ *    - Download as MP3 + OGG (for fallback)
+ *    - Max file size: ~200kb each
+ *
+ * 2. Add files to the project:
+ *    - /public/audio/flyby.mp3
+ *    - /public/audio/flyby.ogg (optional fallback)
+ *
+ * 3. Replace the `playPass()` method below with the commented code at the bottom.
+ *    The panner/gain routing will remain identical — only the source changes.
+ *
+ * 4. Test in the browser and adjust gain/EQ as needed.
  */
 
 export class FlybyAudio {
@@ -14,6 +28,7 @@ export class FlybyAudio {
   private master: GainNode | null = null;
   private panner: StereoPannerNode | PannerNode | null = null;
   private useStereo = false;
+  private audioBuffer: AudioBuffer | null = null;
 
   /** Call after first user gesture. */
   async unlock(): Promise<void> {
@@ -80,8 +95,10 @@ export class FlybyAudio {
   }
 
   /**
-   * One-shot filtered noise burst; duration ~140–220 ms.
+   * CURRENT: One-shot filtered noise burst; duration ~140–220 ms.
    * `speed01` in [0,1] scales perceived loudness.
+   *
+   * TODO: Replace with the commented code below once CC0 audio is added.
    */
   playPass(speed01: number) {
     if (!this.ctx || !this.master) return;
@@ -129,3 +146,42 @@ export class FlybyAudio {
     this.panner = null;
   }
 }
+
+/*
+ * ============================================================================
+ * REPLACEMENT CODE FOR playPass() — Use after adding CC0 audio files
+ * ============================================================================
+ *
+ * async playPassWithAudio(speed01: number) {
+ *   if (!this.ctx || !this.master) return;
+ *
+ *   // Load audio buffer once
+ *   if (!this.audioBuffer) {
+ *     try {
+ *       const response = await fetch("/audio/flyby.mp3");
+ *       const arrayBuffer = await response.arrayBuffer();
+ *       this.audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
+ *     } catch (err) {
+ *       console.error("Failed to load flyby audio:", err);
+ *       return;
+ *     }
+ *   }
+ *
+ *   const src = this.ctx.createBufferSource();
+ *   src.buffer = this.audioBuffer;
+ *   src.playbackRate.value = 0.8 + speed01 * 0.4; // Vary pitch slightly
+ *
+ *   const gain = this.ctx.createGain();
+ *   const g0 = 0.001;
+ *   const peak = 0.4 + speed01 * 0.3;
+ *   const t0 = this.ctx.currentTime;
+ *   gain.gain.setValueAtTime(g0, t0);
+ *   gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.05);
+ *   gain.gain.exponentialRampToValueAtTime(g0, t0 + this.audioBuffer.duration);
+ *
+ *   src.connect(gain);
+ *   gain.connect(this.master);
+ *
+ *   src.start(t0);
+ * }
+ */

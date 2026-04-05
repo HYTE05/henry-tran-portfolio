@@ -108,6 +108,21 @@
 }
 
 /* ─── Base Styles ───────────────────────────────────────────────────────── */
+
+/* Hide system cursor — PlaneCursor renders a custom plane cursor on non-touch devices */
+html,
+html * {
+  cursor: none !important;
+}
+
+/* Restore default cursor on touch/coarse-pointer devices (PlaneCursor doesn't mount) */
+@media (pointer: coarse) {
+  html,
+  html * {
+    cursor: auto !important;
+  }
+}
+
 html,
 body {
   height: 100%;

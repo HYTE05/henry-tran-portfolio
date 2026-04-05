@@ -1,62 +1,87 @@
 import Link from "next/link";
 
+/**
+ * 404 — "Lost in orbit."
+ *
+ * PRD spec:
+ * - Full dark background #08090d, everything centered
+ * - Large heading "Lost in orbit." — Cormorant Garamond, clamp(4rem,8vw,7rem), weight 300, #f0ece4
+ * - Subtext "This flight path doesn't exist." — DM Sans, 1rem, #8a8680
+ * - Small SVG plane drifting slowly left to right, looping — subtle, not distracting
+ * - "Return to base" button — amber filled CTA, links to /
+ */
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex-1 bg-[var(--bg-primary)] flex items-center justify-center px-6">
-      <div className="max-w-md text-center">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-[var(--bg-surface)] border border-[var(--accent-warm)]/30">
-            <span className="font-[family-name:var(--font-cormorant)] text-4xl text-[var(--accent-warm)]">
-              404
-            </span>
-          </div>
-        </div>
+    <main
+      className="flex min-h-screen flex-1 items-center justify-center bg-[var(--bg-primary)] px-6"
+    >
+      {/* Drifting plane animation — fixed position, slow left-to-right loop */}
+      <style>{`
+        @keyframes plane-drift-404 {
+          0%   { transform: translateX(-120px); opacity: 0; }
+          8%   { opacity: 0.18; }
+          92%  { opacity: 0.18; }
+          100% { transform: translateX(calc(100vw + 120px)); opacity: 0; }
+        }
+        .plane-drift-404 {
+          position: fixed;
+          top: 20%;
+          left: 0;
+          pointer-events: none;
+          animation: plane-drift-404 24s linear infinite;
+          z-index: 1;
+        }
+      `}</style>
 
-        <h1 className="font-[family-name:var(--font-cormorant)] text-4xl text-[var(--text-primary)] mb-3">
+      <div className="plane-drift-404" aria-hidden>
+        <svg
+          width="56"
+          height="32"
+          viewBox="0 0 72 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+        >
+          <path
+            d="M4 20 38 10l8-6 6 2-4 8 14 6v4L44 26l-6 8-6-2-18-8-10 12H6l2-16Z"
+            fill="var(--text-primary)"
+            fillOpacity={0.55}
+          />
+          <path
+            d="m38 10 10-2"
+            stroke="var(--text-secondary)"
+            strokeWidth="1.2"
+          />
+          <circle cx="52" cy="12" r="2" fill="var(--accent-cool)" fillOpacity={0.7} />
+        </svg>
+      </div>
+
+      <div className="relative z-10 max-w-md text-center">
+        <h1
+          className="font-[family-name:var(--font-cormorant)] text-[var(--text-primary)]"
+          style={{
+            fontSize: "clamp(4rem, 8vw, 7rem)",
+            fontWeight: 300,
+            lineHeight: 1.05,
+          }}
+        >
           Lost in orbit.
         </h1>
 
-        <p className="font-[family-name:var(--font-dm-sans)] text-[var(--text-secondary)] mb-8">
-          The page you&apos;re looking for has drifted beyond the event horizon.
-          Let&apos;s get you back on course.
+        <p
+          className="font-[family-name:var(--font-dm-sans)] mt-5 text-[var(--text-secondary)]"
+          style={{ fontSize: "1rem" }}
+        >
+          This flight path doesn&apos;t exist.
         </p>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="mt-10">
           <Link
             href="/"
-            className="font-[family-name:var(--font-dm-sans)] px-6 py-3 bg-[var(--accent-cool)] text-[var(--bg-primary)] font-bold rounded transition-colors hover:bg-[var(--accent-cool)]/90"
+            className="font-[family-name:var(--font-dm-sans)] inline-flex items-center bg-[var(--accent-warm)] px-7 py-3 text-sm font-medium tracking-wide text-[var(--bg-primary)] transition-all duration-200 hover:opacity-90"
           >
-            Return home
+            Return to base
           </Link>
-          <Link
-            href="/projects"
-            className="font-[family-name:var(--font-dm-sans)] px-6 py-3 border border-[var(--accent-warm)] text-[var(--accent-warm)] rounded transition-colors hover:bg-[var(--accent-warm)]/10"
-          >
-            View projects
-          </Link>
-        </div>
-
-        {/* Subtle animation */}
-        <style>{`
-          @keyframes drift {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-          }
-          .drift {
-            animation: drift 3s ease-in-out infinite;
-          }
-        `}</style>
-        <div className="mt-12 drift">
-          <svg
-            viewBox="0 0 100 100"
-            className="w-16 h-16 mx-auto opacity-20"
-            style={{ imageRendering: "pixelated" }}
-          >
-            {/* Simple satellite/spacecraft silhouette */}
-            <rect x="40" y="30" width="20" height="40" fill="currentColor" />
-            <rect x="30" y="40" width="40" height="8" fill="currentColor" />
-            <circle cx="50" cy="50" r="6" fill="currentColor" />
-          </svg>
         </div>
       </div>
     </main>

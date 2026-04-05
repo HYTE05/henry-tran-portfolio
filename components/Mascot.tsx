@@ -50,6 +50,8 @@ function useSpritesheetAvailable(src: string) {
 /**
  * Phase 3: optional `/mascot/spritesheet.png` (5×1 strip) — see `public/mascot/README.txt`.
  * Until then, dashed placeholder + live anim label for debugging.
+ *
+ * PRD: Section 0 (hero) — mascot is hidden.
  */
 export function Mascot() {
   const section = useScrollSection();
@@ -66,7 +68,8 @@ export function Mascot() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  if (isMobile) return null;
+  // PRD: Section 0 (hero) — mascot not visible
+  if (isMobile || section === "hero") return null;
 
   return (
     <div

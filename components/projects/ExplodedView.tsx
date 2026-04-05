@@ -11,9 +11,17 @@ interface ComponentData {
   color: string;
   assembledPos: [number, number, number];
   explodedPos: [number, number, number];
-  geometry: "box" | "sphere" | "cylinder";
+  geometry: "box" | "sphere" | "cylinder" | "flatbox";
 }
 
+/**
+ * PRD geometry assignments:
+ * - Dialogue Engine: box
+ * - Simulation System: sphere
+ * - Zone Map: flat wide box (like a map/plane)
+ * - Progression System: cylinder
+ * - UI Layer: box
+ */
 const COMPONENTS: ComponentData[] = [
   {
     name: "Dialogue Engine",
@@ -37,7 +45,7 @@ const COMPONENTS: ComponentData[] = [
     color: "#e05a6a",
     assembledPos: [0, 0, 0],
     explodedPos: [-2, -2, 3],
-    geometry: "cylinder",
+    geometry: "flatbox",
   },
   {
     name: "Progression System",
@@ -45,7 +53,7 @@ const COMPONENTS: ComponentData[] = [
     color: "#f0ece4",
     assembledPos: [0, 0, 0],
     explodedPos: [2, -2, -3],
-    geometry: "box",
+    geometry: "cylinder",
   },
   {
     name: "UI Layer",
@@ -72,6 +80,8 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
   const [isExploded, setIsExploded] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState<number | null>(null);
   const rafRef = useRef<number | undefined>(undefined);
+  // Track labels visible state separately to allow fade-in after explosion
+  const labelsVisibleRef = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -86,7 +96,7 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
       75,
       containerRef.current.clientWidth / containerRef.current.clientHeight,
       0.1,
-      1000
+      1000,
     );
     camera.position.z = 8;
     cameraRef.current = camera;
@@ -95,9 +105,9 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(
       containerRef.current.clientWidth,
-      containerRef.current.clientHeight
+      containerRef.current.clientHeight,
     );
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -116,7 +126,11 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
         geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
       } else if (comp.geometry === "sphere") {
         geometry = new THREE.SphereGeometry(0.5, 32, 32);
+      } else if (comp.geometry === "flatbox") {
+        // Flat wide box — like a map/plane
+        geometry = new THREE.BoxGeometry(1.6, 0.15, 1.1);
       } else {
+        // cylinder
         geometry = new THREE.CylinderGeometry(0.4, 0.4, 0.8, 32);
       }
 
@@ -124,6 +138,8 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
         color: comp.color,
         metalness: 0.3,
         roughness: 0.4,
+        transparent: true,
+        opacity: 1.0,
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...comp.assembledPos);
@@ -142,14 +158,15 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
     controls.autoRotateSpeed = 2;
     controlsRef.current = controls;
 
-    // Create labels
+    // Create labels — initially hidden, fade in after explosion completes
     const labels: HTMLDivElement[] = [];
     COMPONENTS.forEach((comp) => {
       const label = document.createElement("div");
       label.className =
-        "absolute pointer-events-auto px-3 py-2 rounded bg-[var(--bg-surface)]/80 backdrop-blur border border-[var(--text-secondary)]/20 text-xs";
+        "absolute pointer-events-auto px-3 py-2 rounded bg-[var(--bg-surface)]/80 backdrop-blur border border-[var(--text-secondary)]/20 text-xs transition-opacity duration-300";
       label.innerHTML = `<div class="font-bold text-[var(--accent-warm)]">${comp.name}</div><div class="text-[var(--text-secondary)] text-[0.7rem] mt-1">${comp.description}</div>`;
       label.style.display = "none";
+      label.style.opacity = "0";
       containerRef.current!.appendChild(label);
       labels.push(label);
     });
@@ -171,23 +188,18 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
       rafRef.current = requestAnimationFrame(animate);
       controls.update();
 
-      // Update label positions
-      meshes.forEach((mesh, idx) => {
-        const vector = mesh.position.clone();
-        vector.project(camera);
-        const x = (vector.x * 0.5 + 0.5) * containerRef.current!.clientWidth;
-        const y = (-(vector.y * 0.5) + 0.5) * containerRef.current!.clientHeight;
-        labels[idx].style.left = `${x}px`;
-        labels[idx].style.top = `${y}px`;
-        labels[idx].style.transform = "translate(-50%, -50%)";
-
-        // Highlight selected
-        if (selectedComponent === idx) {
-          (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x444444);
-        } else {
-          (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000);
-        }
-      });
+      // Update label positions (only when visible)
+      if (labelsVisibleRef.current) {
+        meshes.forEach((mesh, idx) => {
+          const vector = mesh.position.clone();
+          vector.project(camera);
+          const x = (vector.x * 0.5 + 0.5) * containerRef.current!.clientWidth;
+          const y = (-(vector.y * 0.5) + 0.5) * containerRef.current!.clientHeight;
+          labels[idx]!.style.left = `${x}px`;
+          labels[idx]!.style.top = `${y}px`;
+          labels[idx]!.style.transform = "translate(-50%, -50%)";
+        });
+      }
 
       renderer.render(scene, camera);
     };
@@ -199,13 +211,19 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
 
     const handleClick = (event: MouseEvent) => {
       if (event.target !== renderer.domElement) return;
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(meshes);
       if (intersects.length > 0) {
-        const componentIdx = (intersects[0].object as THREE.Mesh).userData.componentIdx;
-        setSelectedComponent(componentIdx);
+        const componentIdx = (intersects[0].object as THREE.Mesh).userData
+          .componentIdx as number;
+        setSelectedComponent((prev) =>
+          prev === componentIdx ? null : componentIdx,
+        );
+      } else {
+        setSelectedComponent(null);
       }
     };
     renderer.domElement.addEventListener("click", handleClick);
@@ -222,28 +240,109 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
       }
       labels.forEach((label) => label.remove());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Apply dim-on-select effect whenever selectedComponent changes
+  useEffect(() => {
+    const meshes = meshesRef.current;
+    if (!meshes.length) return;
+    meshes.forEach((mesh, idx) => {
+      const mat = mesh.material as THREE.MeshStandardMaterial;
+      if (selectedComponent === null) {
+        // No selection — all full opacity, no emissive
+        gsap.to(mat, { opacity: 1.0, duration: 0.25 });
+        mat.emissive.setHex(0x000000);
+      } else if (selectedComponent === idx) {
+        // Selected — full opacity, subtle emissive highlight
+        gsap.to(mat, { opacity: 1.0, duration: 0.25 });
+        mat.emissive.setHex(0x333333);
+      } else {
+        // Not selected — dim to 0.4
+        gsap.to(mat, { opacity: 0.4, duration: 0.25 });
+        mat.emissive.setHex(0x000000);
+      }
+    });
   }, [selectedComponent]);
 
   // Toggle exploded/assembled state
   const toggleExploded = () => {
-    if (!meshesRef.current) return;
+    const meshes = meshesRef.current;
+    if (!meshes.length) return;
     const newExploded = !isExploded;
     setIsExploded(newExploded);
+    setSelectedComponent(null);
 
-    meshesRef.current.forEach((mesh, idx) => {
-      const comp = COMPONENTS[idx];
-      const targetPos = newExploded ? comp.explodedPos : comp.assembledPos;
-      gsap.to(mesh.position, {
-        x: targetPos[0],
-        y: targetPos[1],
-        z: targetPos[2],
-        duration: 1,
-        ease: "power2.inOut",
+    if (newExploded) {
+      // Explode: animate meshes outward, then fade in labels
+      labelsVisibleRef.current = false;
+      labelsRef.current.forEach((label) => {
+        label.style.display = "block";
+        label.style.opacity = "0";
       });
-    });
 
-    if (controlsRef.current) {
-      controlsRef.current.autoRotate = !newExploded;
+      meshes.forEach((mesh, idx) => {
+        const comp = COMPONENTS[idx]!;
+        gsap.to(mesh.position, {
+          x: comp.explodedPos[0],
+          y: comp.explodedPos[1],
+          z: comp.explodedPos[2],
+          duration: 1.0,
+          ease: "power2.inOut",
+          onComplete:
+            idx === meshes.length - 1
+              ? () => {
+                  // All animations done — fade in labels
+                  labelsVisibleRef.current = true;
+                  labelsRef.current.forEach((label) => {
+                    label.style.transition = "opacity 0.35s ease";
+                    label.style.opacity = "1";
+                  });
+                }
+              : undefined,
+        });
+      });
+
+      if (controlsRef.current) {
+        controlsRef.current.autoRotate = false;
+      }
+    } else {
+      // Assemble: hide labels immediately, animate meshes back
+      labelsVisibleRef.current = false;
+      labelsRef.current.forEach((label) => {
+        label.style.opacity = "0";
+        setTimeout(() => {
+          label.style.display = "none";
+        }, 300);
+      });
+
+      meshes.forEach((mesh, idx) => {
+        const comp = COMPONENTS[idx]!;
+        gsap.to(mesh.position, {
+          x: comp.assembledPos[0],
+          y: comp.assembledPos[1],
+          z: comp.assembledPos[2],
+          duration: 1.0,
+          ease: "power2.inOut",
+        });
+      });
+
+      // Reset camera to default position on assemble
+      if (cameraRef.current && controlsRef.current) {
+        gsap.to(cameraRef.current.position, {
+          x: 0,
+          y: 0,
+          z: 8,
+          duration: 1.0,
+          ease: "power2.inOut",
+          onComplete: () => {
+            if (controlsRef.current) {
+              controlsRef.current.reset();
+              controlsRef.current.autoRotate = true;
+            }
+          },
+        });
+      }
     }
   };
 
@@ -251,40 +350,40 @@ export function ExplodedView({ onClose }: ExplodedViewProps) {
     <div className="fixed inset-0 z-50 flex flex-col bg-[var(--bg-primary)]">
       <div
         ref={containerRef}
-        className="flex-1"
+        className="relative flex-1"
         style={{ width: "100%", height: "100%" }}
       />
 
-      {/* Controls */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+      {/* Controls — Assemble button only shown when exploded; Explode always shown */}
+      <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-3">
         <button
           onClick={toggleExploded}
-          className="px-6 py-3 bg-[var(--accent-cool)] text-[var(--bg-primary)] font-bold rounded hover:bg-[var(--accent-cool)]/80 transition-colors"
+          className="rounded bg-[var(--accent-cool)] px-6 py-3 font-bold text-[var(--bg-primary)] transition-colors hover:bg-[var(--accent-cool)]/80"
         >
           {isExploded ? "Assemble" : "Explode"}
         </button>
         {onClose && (
           <button
             onClick={onClose}
-            className="px-6 py-3 border border-[var(--text-secondary)] text-[var(--text-secondary)] rounded hover:bg-[var(--bg-surface)]/30 transition-colors"
+            className="rounded border border-[var(--text-secondary)] px-6 py-3 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-surface)]/30"
           >
             Close
           </button>
         )}
       </div>
 
-      {/* Selected component detail */}
+      {/* Selected component detail panel */}
       {selectedComponent !== null && (
-        <div className="absolute top-6 left-6 max-w-xs bg-[var(--bg-surface)]/80 backdrop-blur border border-[var(--text-secondary)]/20 p-6 rounded">
-          <h3 className="font-bold text-lg text-[var(--accent-warm)]">
-            {COMPONENTS[selectedComponent].name}
+        <div className="absolute left-6 top-6 max-w-xs rounded border border-[var(--text-secondary)]/20 bg-[var(--bg-surface)]/80 p-6 backdrop-blur">
+          <h3 className="text-lg font-bold text-[var(--accent-warm)]">
+            {COMPONENTS[selectedComponent]!.name}
           </h3>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">
-            {COMPONENTS[selectedComponent].description}
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">
+            {COMPONENTS[selectedComponent]!.description}
           </p>
           <button
             onClick={() => setSelectedComponent(null)}
-            className="mt-4 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            className="mt-4 text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
           >
             Deselect
           </button>

@@ -14,9 +14,17 @@ const PHRASES = [
   "Building AI-assisted tools to understand the field.",
 ];
 
+/**
+ * PRD typography tiers:
+ * Primary (index 0, 2): clamp(2.5rem, 5vw, 5rem), weight 400–500, #f0ece4
+ * Secondary (index 1, 3, 4): clamp(1.5rem, 3vw, 3rem), weight 300, #8a8680
+ * Between phrases: thin horizontal rule rgba(240,236,228,0.1)
+ */
+const isPrimary = (i: number) => i === 0 || i === 2;
+
 export function AboutSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const phraseEls = useRef<(HTMLParagraphElement | null)[]>([]);
+  const phraseEls = useRef<(HTMLDivElement | null)[]>([]);
   const driftA = useRef<HTMLDivElement>(null);
   const driftB = useRef<HTMLDivElement>(null);
   const driftC = useRef<HTMLDivElement>(null);
@@ -27,7 +35,7 @@ export function AboutSection() {
     if (!section) return;
 
     const ctx = gsap.context(() => {
-      const phrases = phraseEls.current.filter(Boolean) as HTMLParagraphElement[];
+      const phrases = phraseEls.current.filter(Boolean) as HTMLDivElement[];
       gsap.set(phrases, { opacity: 0, y: 22 });
 
       const tl = gsap.timeline({
@@ -105,15 +113,44 @@ export function AboutSection() {
 
         <div className="relative z-10 max-w-xl text-center md:max-w-2xl">
           {PHRASES.map((text, i) => (
-            <p
+            <div
               key={text}
               ref={(el) => {
                 phraseEls.current[i] = el;
               }}
-              className="font-[family-name:var(--font-cormorant)] text-xl font-medium leading-snug text-[var(--text-primary)] md:text-2xl md:leading-snug [&:not(:last-child)]:mb-8"
             >
-              {text}
-            </p>
+              {/* Thin horizontal rule before each phrase except the first */}
+              {i > 0 && (
+                <hr
+                  className="mx-auto mb-8 w-16 border-none"
+                  style={{
+                    height: "1px",
+                    backgroundColor: "rgba(240,236,228,0.1)",
+                  }}
+                  aria-hidden
+                />
+              )}
+              <p
+                className="font-[family-name:var(--font-cormorant)] leading-snug"
+                style={
+                  isPrimary(i)
+                    ? {
+                        fontSize: "clamp(2.5rem, 5vw, 5rem)",
+                        fontWeight: 450,
+                        color: "var(--text-primary)",
+                        marginBottom: i < PHRASES.length - 1 ? "2rem" : 0,
+                      }
+                    : {
+                        fontSize: "clamp(1.5rem, 3vw, 3rem)",
+                        fontWeight: 300,
+                        color: "var(--text-secondary)",
+                        marginBottom: i < PHRASES.length - 1 ? "2rem" : 0,
+                      }
+                }
+              >
+                {text}
+              </p>
+            </div>
           ))}
         </div>
       </div>

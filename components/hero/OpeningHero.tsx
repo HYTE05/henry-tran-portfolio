@@ -295,7 +295,7 @@ export function OpeningHero() {
     >
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6">
         <p
-          className="font-[family-name:var(--font-cormorant)] text-[0.7rem] font-light uppercase tracking-[0.55em] text-[var(--text-secondary)] md:text-[0.75rem]"
+          className="font-[family-name:var(--font-cormorant)] text-[0.7rem] font-light tracking-[0.55em] text-[var(--text-secondary)] md:text-[0.75rem]"
           style={{ fontWeight: 300 }}
         >
           produced by

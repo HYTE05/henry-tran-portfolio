@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AppShell } from "@/components/AppShell";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PlaneCursor } from "@/components/PlaneCursor";
 
 import { fontCormorant, fontDmSans, fontGreatVibes } from "./fonts";
 import "./globals.css";
@@ -22,6 +23,7 @@ export default function RootLayout({
       className={`${fontCormorant.variable} ${fontDmSans.variable} ${fontGreatVibes.variable} h-full antialiased`}
     >
       <body className="relative flex min-h-full flex-col font-[family-name:var(--font-dm-sans)]">
+        <PlaneCursor />
         <SiteHeader />
         <AppShell>{children}</AppShell>
       </body>
